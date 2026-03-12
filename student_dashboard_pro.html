@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Performance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Spline+Sans+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f2f5;
+  --white: #ffffff;
+  --surface: #ffffff;
+  --border: #e2e6ed;
+  --text: #1a2035;
+  --muted: #7b8499;
+  --light: #f7f9fc;
+
+  --blue:    #2563eb;
+  --blue-lt: #dbeafe;
+  --teal:    #0d9488;
+  --teal-lt: #ccfbf1;
+  --amber:   #d97706;
+  --amber-lt:#fef3c7;
+  --rose:    #e11d48;
+  --rose-lt: #ffe4e6;
+  --violet:  #7c3aed;
+  --violet-lt:#ede9fe;
+  --emerald: #059669;
+  --emerald-lt:#d1fae5;
+
+  --grade-a: #059669;
+  --grade-b: #10b981;
+  --grade-c: #f59e0b;
+  --grade-d: #f97316;
+  --grade-e: #ef4444;
+  --grade-f: #be123c;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow:    0 4px 16px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: var(--shadow-sm);
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.header-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--blue); display: flex; align-items: center; justify-content: center;
+}
+.header-icon svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+.header-title { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.header-sub { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  background: var(--blue-lt); color: var(--blue);
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── LAYOUT ── */
+.page { padding: 24px 32px 40px; max-width: 1440px; margin: 0 auto; }
+
+/* ── KPI ROW ── */
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.kpi {
+  background: var(--white); border-radius: var(--radius);
+  padding: 20px 22px; box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 14px;
+  position: relative; overflow: hidden;
+  animation: fadeUp .5s ease both;
+}
+.kpi:nth-child(1){animation-delay:.05s}
+.kpi:nth-child(2){animation-delay:.1s}
+.kpi:nth-child(3){animation-delay:.15s}
+.kpi:nth-child(4){animation-delay:.2s}
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+
+.kpi-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.kpi-icon svg { width: 20px; height: 20px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.kpi-body { flex: 1; }
+.kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 4px; }
+.kpi-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.kpi-trend {
+  font-size: 11px; font-weight: 600; padding: 2px 7px;
+  border-radius: 20px; margin-top: 6px; display: inline-block;
+}
+
+/* ── GRID ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px; }
+
+/* ── CARD ── */
+.card {
+  background: var(--white); border-radius: var(--radius);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  padding: 22px 24px;
+  animation: fadeUp .5s ease both;
+}
+.card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.card-title { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: -.1px; }
+.card-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.chip {
+  font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: .5px; white-space: nowrap;
+}
+
+/* ── TOOLTIP ── */
+#tip {
+  position: fixed; pointer-events: none; z-index: 9999;
+  background: var(--text); color: #fff;
+  border-radius: 8px; padding: 9px 13px;
+  font-size: 12px; font-weight: 500; line-height: 1.6;
+  box-shadow: var(--shadow-lg);
+  opacity: 0; transition: opacity .12s;
+  max-width: 200px;
+}
+#tip.show { opacity: 1; }
+#tip strong { display: block; font-size: 13px; font-weight: 700; margin-bottom: 2px; color: #a5f3fc; }
+
+/* ── GRADE DONUT ── */
+.donut-wrap { display: flex; align-items: center; gap: 24px; }
+.donut-legend { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.dleg { display: flex; align-items: center; gap: 8px; cursor: default; }
+.dleg-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.dleg-label { font-size: 12px; color: var(--text); flex: 1; font-weight: 500; }
+.dleg-val { font-size: 12px; font-weight: 700; color: var(--text); }
+.dleg-bar { height: 4px; border-radius: 2px; margin-top: 2px; }
+
+/* ── HORIZONTAL BAR ── */
+.hbar-row { display: flex; flex-direction: column; gap: 10px; }
+.hbar-item { display: grid; grid-template-columns: 110px 1fr 44px; align-items: center; gap: 10px; }
+.hbar-label { font-size: 11px; color: var(--muted); font-weight: 500; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbar-track { height: 22px; background: var(--light); border-radius: 4px; overflow: hidden; position: relative; }
+.hbar-fill {
+  height: 100%; border-radius: 4px;
+  display: flex; align-items: center; padding-left: 8px;
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,.9);
+  transition: width 1.2s cubic-bezier(.16,1,.3,1);
+  cursor: pointer; white-space: nowrap;
+}
+.hbar-val { font-size: 12px; font-weight: 700; color: var(--text); text-align: right; }
+
+/* ── SCORE HISTOGRAM ── */
+.hist-bars { display: flex; align-items: flex-end; gap: 5px; height: 120px; padding-bottom: 20px; position: relative; }
+.hist-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; height: 100%; justify-content: flex-end; }
+.hist-bar {
+  width: 100%; border-radius: 4px 4px 0 0; cursor: pointer;
+  transition: opacity .2s, transform .2s;
+  position: relative;
+}
+.hist-bar:hover { opacity: .8; transform: scaleY(1.03); transform-origin: bottom; }
+.hist-xlabel { font-size: 9px; color: var(--muted); margin-top: 4px; }
+.hist-grid { position: absolute; top: 0; left: 0; right: 0; bottom: 20px; pointer-events: none; }
+
+/* ── SCATTER CANVAS ── */
+.canvas-wrap { position: relative; }
+canvas { display: block; width: 100%; }
+
+/* ── METHOD BUBBLES ── */
+.bubble-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 140px; padding: 0 8px; }
+.bubble-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+.bubble {
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: white; cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  flex-shrink: 0;
+}
+.bubble:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+.bubble-label { font-size: 10px; color: var(--muted); text-align: center; font-weight: 500; line-height: 1.2; }
+.bubble-score { font-size: 12px; font-weight: 700; color: var(--text); }
+
+/* ── ATTENDANCE GAUGE ── */
+.gauge-row { display: flex; flex-direction: column; gap: 9px; }
+.gauge-item { display: grid; grid-template-columns: 70px 1fr 42px; align-items: center; gap: 8px; }
+.gauge-label { font-size: 11px; color: var(--muted); text-align: right; font-weight: 500; }
+.gauge-track { height: 18px; background: var(--light); border-radius: 20px; overflow: hidden; }
+.gauge-fill {
+  height: 100%; border-radius: 20px;
+  transition: width 1.3s cubic-bezier(.16,1,.3,1);
+  cursor: pointer;
+}
+.gauge-val { font-size: 12px; font-weight: 700; color: var(--text); text-align: right; }
+
+/* ── GENDER RING ── */
+.gender-grid { display: flex; justify-content: space-around; align-items: center; padding: 8px 0; }
+.gender-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.gender-ring { position: relative; width: 70px; height: 70px; }
+.gender-ring canvas { position: absolute; top: 0; left: 0; }
+.gender-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.gender-pct { font-size: 14px; font-weight: 800; }
+.gender-name { font-size: 10px; color: var(--muted); font-weight: 500; text-align: center; }
+.gender-score-lbl { font-size: 10px; color: var(--muted); }
+.gender-score-val { font-size: 13px; font-weight: 700; color: var(--text); }
+
+/* ── SCHOOL STACKED ── */
+.stacked-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.sleg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); font-weight: 500; }
+.sleg-dot { width: 8px; height: 8px; border-radius: 2px; }
+.stacked-bars { display: flex; flex-direction: column; gap: 10px; }
+.sbar-row { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 10px; }
+.sbar-label { font-size: 12px; font-weight: 600; color: var(--text); text-align: right; }
+.sbar-track { height: 32px; display: flex; border-radius: 6px; overflow: hidden; cursor: pointer; }
+.sbar-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: rgba(255,255,255,.9); transition: opacity .2s; }
+.sbar-seg:hover { opacity: .85; }
+
+/* ── EDU DOTS ── */
+.edu-chart { display: flex; flex-direction: column; gap: 10px; }
+.edu-row { display: grid; grid-template-columns: 100px 1fr 44px; align-items: center; gap: 10px; }
+.edu-label { font-size: 11px; color: var(--muted); font-weight: 500; text-align: right; }
+.edu-track { height: 24px; background: var(--light); border-radius: 4px; overflow: hidden; position: relative; }
+.edu-fill { height: 100%; border-radius: 4px; transition: width 1.2s cubic-bezier(.16,1,.3,1); cursor: pointer; display: flex; align-items: center; padding: 0 8px; }
+.edu-val { font-size: 12px; font-weight: 700; color: var(--text); }
+
+/* ── INSIGHT BOX ── */
+.insight-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.insight {
+  border-radius: 10px; padding: 14px 16px;
+  border-left: 3px solid;
+}
+.insight-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 5px; }
+.insight-text { font-size: 12px; line-height: 1.5; color: var(--muted); }
+.insight-val { font-size: 20px; font-weight: 800; margin-top: 4px; }
+
+/* ── DIVIDER ── */
+.section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--muted); margin-bottom: 12px; margin-top: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center; padding: 20px 0 10px;
+  font-size: 11px; color: var(--muted);
+  border-top: 1px solid var(--border); margin-top: 8px;
+}
+</style>
+</head>
+<body>
+
+<div id="tip"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <div>
+      <div class="header-title">Student Performance Analytics</div>
+      <div class="header-sub">Academic Year · 15,000 Students · Math · Science · English</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="badge"><span class="badge-dot"></span>Live Dataset · 15K Records</div>
+  </div>
+</header>
+
+<div class="page">
+
+<!-- KPI ROW -->
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="kpi-icon" style="background:#dbeafe">
+      <svg viewBox="0 0 24 24" style="stroke:#2563eb"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Avg Overall Score</div>
+      <div class="kpi-value" style="color:#2563eb">64.0</div>
+      <div class="kpi-sub">Out of 100 · All Subjects</div>
+      <div class="kpi-trend" style="background:#dbeafe;color:#2563eb">▲ Moderate</div>
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon" style="background:#ccfbf1">
+      <svg viewBox="0 0 24 24" style="stroke:#0d9488"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Total Students</div>
+      <div class="kpi-value" style="color:#0d9488">15,000</div>
+      <div class="kpi-sub">Balanced gender distribution</div>
+      <div class="kpi-trend" style="background:#ccfbf1;color:#0d9488">3 Genders</div>
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon" style="background:#fef3c7">
+      <svg viewBox="0 0 24 24" style="stroke:#d97706"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Avg Attendance</div>
+      <div class="kpi-value" style="color:#d97706">75.0%</div>
+      <div class="kpi-sub">Room for improvement</div>
+      <div class="kpi-trend" style="background:#fef3c7;color:#d97706">↔ Needs Focus</div>
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon" style="background:#ede9fe">
+      <svg viewBox="0 0 24 24" style="stroke:#7c3aed"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Pass Rate (A–D)</div>
+      <div class="kpi-value" style="color:#7c3aed">65.5%</div>
+      <div class="kpi-sub">34.5% at risk (E or F)</div>
+      <div class="kpi-trend" style="background:#ede9fe;color:#7c3aed">⚠ 34.5% At Risk</div>
+    </div>
+  </div>
+</div>
+
+<!-- ROW 1: Grade Distribution + Score Histogram + Gender -->
+<div class="section-label">Distribution Overview</div>
+<div class="grid-3">
+
+  <!-- GRADE DONUT -->
+  <div class="card" style="animation-delay:.1s">
+    <div class="card-header">
+      <div><div class="card-title">Grade Distribution</div><div class="card-sub">Final grade breakdown · 15,000 students</div></div>
+      <span class="chip" style="background:#dbeafe;color:#2563eb">6 Grades</span>
+    </div>
+    <div class="donut-wrap">
+      <canvas id="donut" width="130" height="130" style="flex-shrink:0"></canvas>
+      <div class="donut-legend" id="donutLegend"></div>
+    </div>
+  </div>
+
+  <!-- SCORE HISTOGRAM -->
+  <div class="card" style="animation-delay:.15s">
+    <div class="card-header">
+      <div><div class="card-title">Score Distribution</div><div class="card-sub">Overall score frequency by range</div></div>
+      <span class="chip" style="background:#ccfbf1;color:#0d9488">Normal Curve</span>
+    </div>
+    <div class="hist-bars" id="histBars"></div>
+  </div>
+
+  <!-- GENDER -->
+  <div class="card" style="animation-delay:.2s">
+    <div class="card-header">
+      <div><div class="card-title">Gender Breakdown</div><div class="card-sub">Distribution & avg score by gender</div></div>
+      <span class="chip" style="background:#ede9fe;color:#7c3aed">Balanced</span>
+    </div>
+    <div class="gender-grid" id="genderGrid"></div>
+  </div>
+</div>
+
+<!-- ROW 2: Attendance + Study Hours -->
+<div class="section-label">Key Performance Drivers</div>
+<div class="grid-2">
+
+  <!-- ATTENDANCE -->
+  <div class="card" style="animation-delay:.2s">
+    <div class="card-header">
+      <div><div class="card-title">Attendance Rate vs Avg Score</div><div class="card-sub">Strong positive correlation — +15 pts across brackets</div></div>
+      <span class="chip" style="background:#fef3c7;color:#d97706">Top Driver</span>
+    </div>
+    <div class="gauge-row" id="attGauge"></div>
+  </div>
+
+  <!-- STUDY HOURS -->
+  <div class="card" style="animation-delay:.25s">
+    <div class="card-header">
+      <div><div class="card-title">Study Hours vs Avg Score</div><div class="card-sub">6–8h/day students score 2× those studying 0–2h</div></div>
+      <span class="chip" style="background:#d1fae5;color:#059669">Critical Factor</span>
+    </div>
+    <div class="hbar-row" id="studyBars"></div>
+  </div>
+</div>
+
+<!-- ROW 3: Subject Performance + Study Method -->
+<div class="section-label">Academic Performance</div>
+<div class="grid-3-1">
+
+  <!-- SUBJECT BY GENDER – grouped bars -->
+  <div class="card" style="animation-delay:.25s">
+    <div class="card-header">
+      <div><div class="card-title">Subject-wise Performance by Gender</div><div class="card-sub">Math · Science · English — Gender comparison</div></div>
+      <span class="chip" style="background:#dbeafe;color:#2563eb">3 Subjects</span>
+    </div>
+    <canvas id="subjectBar" height="170"></canvas>
+  </div>
+
+  <!-- STUDY METHOD -->
+  <div class="card" style="animation-delay:.3s">
+    <div class="card-header">
+      <div><div class="card-title">Study Method Impact</div><div class="card-sub">Avg score by method used</div></div>
+    </div>
+    <div class="bubble-chart" id="bubbleChart"></div>
+  </div>
+</div>
+
+<!-- ROW 4: School Type + Parent Education -->
+<div class="section-label">Contextual Factors</div>
+<div class="grid-2">
+
+  <!-- SCHOOL TYPE STACKED -->
+  <div class="card" style="animation-delay:.3s">
+    <div class="card-header">
+      <div><div class="card-title">School Type — Grade Breakdown</div><div class="card-sub">Public vs Private grade distribution</div></div>
+      <span class="chip" style="background:#fef3c7;color:#d97706">Stacked</span>
+    </div>
+    <div class="stacked-legend" id="stackedLegend"></div>
+    <div class="stacked-bars" id="stackedBars"></div>
+  </div>
+
+  <!-- PARENT EDUCATION -->
+  <div class="card" style="animation-delay:.35s">
+    <div class="card-header">
+      <div><div class="card-title">Parent Education vs Avg Score</div><div class="card-sub">Impact of parent background on performance</div></div>
+      <span class="chip" style="background:#ede9fe;color:#7c3aed">6 Levels</span>
+    </div>
+    <div class="edu-chart" id="eduChart"></div>
+  </div>
+</div>
+
+<!-- ROW 5: Scatter Plot full width -->
+<div class="section-label">Correlation Analysis</div>
+<div class="card" style="animation-delay:.35s; margin-bottom:16px">
+  <div class="card-header">
+    <div><div class="card-title">Study Hours vs Overall Score — Scatter Analysis</div><div class="card-sub">500-student sample · coloured by final grade</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="scatterLegend"></div>
+  </div>
+  <div class="canvas-wrap"><canvas id="scatter" height="260"></canvas></div>
+</div>
+
+<!-- ROW 6: Key Insights -->
+<div class="section-label">Key Insights</div>
+<div class="insight-grid">
+  <div class="insight" style="background:#eff6ff;border-color:#2563eb">
+    <div class="insight-title" style="color:#2563eb">📈 Attendance Impact</div>
+    <div class="insight-val" style="color:#2563eb">+15 pts</div>
+    <div class="insight-text">Students with 90–100% attendance score 15 points higher than those below 60%. The single strongest driver in the dataset.</div>
+  </div>
+  <div class="insight" style="background:#f0fdf4;border-color:#059669">
+    <div class="insight-title" style="color:#059669">📚 Study Hours Threshold</div>
+    <div class="insight-val" style="color:#059669">5h / day</div>
+    <div class="insight-text">Students studying 6–8h average 85.4 vs only 39.8 for 0–2h. A clear performance cliff exists at ~5 hours daily.</div>
+  </div>
+  <div class="insight" style="background:#fff7ed;border-color:#d97706">
+    <div class="insight-title" style="color:#d97706">⚠️ At-Risk Students</div>
+    <div class="insight-val" style="color:#d97706">34.5%</div>
+    <div class="insight-text">5,174 students received Grade E or F. Targeted interventions around attendance and study habits could significantly reduce this.</div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<footer>Student Performance Dashboard · 15,000 Records · Math · Science · English · Generated by EduLens Analytics</footer>
+
+<script>
+// ── DATA ──
+const D = {
+  grade_dist: {a:721,b:1638,c:3697,d:3770,e:3378,f:1796},
+  grade_colors: {a:'#059669',b:'#10b981',c:'#f59e0b',d:'#f97316',e:'#ef4444',f:'#be123c'},
+  subj_gender: {
+    male:   {math:63.75, science:63.77, english:63.64},
+    female: {math:64.07, science:64.11, english:63.96},
+    other:  {math:63.51, science:63.38, english:63.53}
+  },
+  att_avg:   {'<60%':56.36,'60–70%':59.82,'70–80%':64.82,'80–90%':67.66,'90–100%':71.36},
+  study_avg: {'0–2h':39.79,'2–4h':53.74,'4–6h':69.55,'6–8h':85.42},
+  study_count:{'0–2h':2938,'2–4h':3885,'4–6h':4029,'6–8h':4148},
+  method_avg: {Notes:63.86,Textbook:64.19,'Group Study':63.25,Coaching:64.48,Mixed:63.65,'Online Videos':64.68},
+  method_count:{Notes:2515,Textbook:2546,'Group Study':2447,Coaching:2422,Mixed:2602,'Online Videos':2468},
+  edu_avg:   {'Post Grad':64.3,'Graduate':63.95,'High School':63.45,'No Formal':63.65,'Diploma':64.77,'PhD':63.94},
+  edu_count: {'Post Grad':2535,'Graduate':2481,'High School':2532,'No Formal':2445,'Diploma':2581,'PhD':2426},
+  gender:    {male:{n:4979,avg:63.95},female:{n:4979,avg:64.35},other:{n:5042,avg:63.75}},
+  school_grade: {
+    public:  {a:357,b:820,c:1845,d:1820,e:1666,f:905},
+    private: {a:364,b:818,c:1852,d:1950,e:1712,f:891}
+  },
+  score_hist: {10:18,20:410,30:1360,40:2182,50:2469,60:2488,70:2515,80:2152,90:1099,100:307},
+  scatter: [{"x":5.6,"y":68.4,"grade":"d"},{"x":4.5,"y":66.4,"grade":"d"},{"x":1.8,"y":41.0,"grade":"e"},{"x":1.1,"y":46.7,"grade":"e"},{"x":3.7,"y":46.2,"grade":"e"},{"x":4.6,"y":66.8,"grade":"d"},{"x":1.6,"y":57.4,"grade":"d"},{"x":2.0,"y":31.8,"grade":"f"},{"x":6.8,"y":89.7,"grade":"b"},{"x":4.0,"y":53.9,"grade":"e"},{"x":7.6,"y":86.5,"grade":"b"},{"x":3.3,"y":52.9,"grade":"e"},{"x":4.5,"y":62.4,"grade":"d"},{"x":7.9,"y":79.5,"grade":"c"},{"x":6.1,"y":80.6,"grade":"c"},{"x":7.3,"y":95.2,"grade":"a"},{"x":4.4,"y":76.5,"grade":"c"},{"x":1.6,"y":39.9,"grade":"f"},{"x":4.0,"y":68.2,"grade":"d"},{"x":2.5,"y":63.7,"grade":"d"},{"x":4.0,"y":70.3,"grade":"c"},{"x":5.8,"y":76.9,"grade":"c"},{"x":2.4,"y":58.0,"grade":"d"},{"x":1.6,"y":41.7,"grade":"e"},{"x":2.3,"y":52.6,"grade":"e"},{"x":1.9,"y":41.8,"grade":"e"},{"x":0.9,"y":46.6,"grade":"e"},{"x":7.8,"y":95.3,"grade":"a"},{"x":5.8,"y":76.8,"grade":"c"},{"x":1.3,"y":39.6,"grade":"f"},{"x":1.3,"y":29.6,"grade":"f"},{"x":3.6,"y":74.7,"grade":"c"},{"x":3.1,"y":45.0,"grade":"e"},{"x":5.0,"y":69.8,"grade":"d"},{"x":4.7,"y":79.7,"grade":"c"},{"x":0.6,"y":22.6,"grade":"f"},{"x":6.2,"y":81.3,"grade":"c"},{"x":7.1,"y":100.0,"grade":"a"},{"x":1.9,"y":52.9,"grade":"e"},{"x":7.2,"y":100.0,"grade":"a"},{"x":0.8,"y":41.3,"grade":"e"},{"x":2.3,"y":61.9,"grade":"d"},{"x":1.2,"y":29.8,"grade":"f"},{"x":4.5,"y":73.5,"grade":"c"},{"x":5.9,"y":76.3,"grade":"c"},{"x":5.0,"y":71.2,"grade":"c"},{"x":7.9,"y":94.9,"grade":"b"},{"x":4.9,"y":78.3,"grade":"c"},{"x":4.5,"y":52.4,"grade":"e"},{"x":6.8,"y":74.5,"grade":"c"},{"x":3.2,"y":54.3,"grade":"e"},{"x":4.9,"y":77.0,"grade":"c"},{"x":3.5,"y":48.4,"grade":"e"},{"x":2.8,"y":38.3,"grade":"f"},{"x":2.0,"y":55.8,"grade":"d"},{"x":2.7,"y":56.0,"grade":"d"},{"x":5.7,"y":76.3,"grade":"c"},{"x":7.2,"y":91.9,"grade":"b"},{"x":3.9,"y":53.8,"grade":"e"},{"x":3.8,"y":59.9,"grade":"d"},{"x":3.0,"y":60.8,"grade":"d"},{"x":7.7,"y":97.7,"grade":"a"},{"x":1.1,"y":34.2,"grade":"f"},{"x":1.4,"y":42.5,"grade":"e"},{"x":4.6,"y":49.2,"grade":"e"},{"x":1.2,"y":38.7,"grade":"f"},{"x":7.1,"y":75.9,"grade":"c"},{"x":5.6,"y":88.8,"grade":"b"},{"x":7.1,"y":73.6,"grade":"c"},{"x":5.1,"y":83.6,"grade":"c"},{"x":2.4,"y":43.7,"grade":"e"},{"x":6.8,"y":79.7,"grade":"c"},{"x":2.3,"y":43.5,"grade":"e"},{"x":6.7,"y":96.1,"grade":"a"},{"x":3.1,"y":46.7,"grade":"e"},{"x":3.0,"y":65.3,"grade":"d"},{"x":3.5,"y":47.1,"grade":"e"},{"x":7.1,"y":81.0,"grade":"c"},{"x":4.8,"y":69.9,"grade":"d"},{"x":2.0,"y":43.9,"grade":"e"},{"x":1.1,"y":44.7,"grade":"e"},{"x":3.5,"y":58.0,"grade":"d"},{"x":3.9,"y":68.0,"grade":"d"},{"x":3.8,"y":51.6,"grade":"e"},{"x":1.5,"y":42.9,"grade":"e"},{"x":5.1,"y":73.8,"grade":"c"},{"x":7.8,"y":87.8,"grade":"b"},{"x":4.0,"y":69.0,"grade":"d"},{"x":7.0,"y":100.0,"grade":"a"},{"x":6.1,"y":92.6,"grade":"b"},{"x":3.9,"y":65.1,"grade":"d"},{"x":6.4,"y":73.4,"grade":"c"},{"x":4.2,"y":57.6,"grade":"d"},{"x":4.9,"y":66.9,"grade":"d"},{"x":2.2,"y":51.7,"grade":"e"},{"x":7.4,"y":89.1,"grade":"b"},{"x":4.9,"y":64.7,"grade":"d"},{"x":4.5,"y":61.9,"grade":"d"},{"x":5.4,"y":64.8,"grade":"d"},{"x":1.5,"y":45.2,"grade":"e"},{"x":3.8,"y":54.7,"grade":"e"},{"x":5.3,"y":72.1,"grade":"c"},{"x":1.9,"y":40.7,"grade":"e"},{"x":0.6,"y":20.5,"grade":"f"},{"x":4.5,"y":66.3,"grade":"d"},{"x":5.2,"y":64.3,"grade":"d"},{"x":4.3,"y":68.1,"grade":"d"},{"x":5.3,"y":70.1,"grade":"c"},{"x":6.9,"y":72.4,"grade":"c"},{"x":1.3,"y":32.4,"grade":"f"},{"x":1.4,"y":29.5,"grade":"f"},{"x":1.4,"y":38.1,"grade":"f"},{"x":5.4,"y":68.1,"grade":"d"},{"x":5.1,"y":58.0,"grade":"d"},{"x":4.1,"y":73.3,"grade":"c"},{"x":3.7,"y":50.9,"grade":"e"},{"x":2.7,"y":61.6,"grade":"d"},{"x":5.3,"y":75.9,"grade":"c"},{"x":5.5,"y":72.9,"grade":"c"},{"x":6.8,"y":100.0,"grade":"a"},{"x":3.0,"y":55.6,"grade":"d"},{"x":4.8,"y":56.7,"grade":"d"},{"x":3.6,"y":64.5,"grade":"d"},{"x":4.9,"y":59.3,"grade":"d"},{"x":3.0,"y":42.6,"grade":"e"},{"x":6.3,"y":90.9,"grade":"b"},{"x":7.7,"y":100.0,"grade":"a"},{"x":4.3,"y":62.4,"grade":"d"},{"x":6.1,"y":76.8,"grade":"c"},{"x":0.5,"y":33.5,"grade":"f"},{"x":6.4,"y":76.9,"grade":"c"},{"x":0.9,"y":52.0,"grade":"e"},{"x":3.5,"y":58.2,"grade":"d"},{"x":0.7,"y":47.3,"grade":"e"},{"x":2.2,"y":41.2,"grade":"e"},{"x":4.5,"y":61.9,"grade":"d"},{"x":4.1,"y":66.3,"grade":"d"},{"x":5.9,"y":90.5,"grade":"b"},{"x":5.8,"y":83.9,"grade":"c"},{"x":7.6,"y":100.0,"grade":"a"},{"x":4.7,"y":69.2,"grade":"d"},{"x":1.1,"y":33.1,"grade":"f"},{"x":4.7,"y":61.3,"grade":"d"},{"x":7.8,"y":88.4,"grade":"b"},{"x":6.5,"y":91.6,"grade":"b"},{"x":7.1,"y":95.0,"grade":"b"},{"x":4.4,"y":60.7,"grade":"d"},{"x":4.3,"y":64.4,"grade":"d"},{"x":1.5,"y":29.9,"grade":"f"},{"x":6.0,"y":72.8,"grade":"c"},{"x":0.6,"y":18.2,"grade":"f"},{"x":6.2,"y":85.5,"grade":"b"},{"x":5.0,"y":67.6,"grade":"d"},{"x":7.6,"y":95.0,"grade":"a"},{"x":6.1,"y":71.5,"grade":"c"},{"x":1.8,"y":34.5,"grade":"f"},{"x":1.9,"y":44.0,"grade":"e"},{"x":3.1,"y":51.9,"grade":"e"},{"x":3.7,"y":53.2,"grade":"e"},{"x":3.5,"y":51.3,"grade":"e"},{"x":4.5,"y":69.7,"grade":"d"},{"x":5.7,"y":62.1,"grade":"d"},{"x":3.5,"y":65.4,"grade":"d"},{"x":4.8,"y":68.9,"grade":"d"},{"x":6.4,"y":61.5,"grade":"d"},{"x":5.9,"y":72.1,"grade":"c"},{"x":7.6,"y":73.9,"grade":"c"},{"x":4.1,"y":59.6,"grade":"d"},{"x":7.3,"y":77.3,"grade":"c"},{"x":1.5,"y":43.7,"grade":"e"},{"x":0.6,"y":51.6,"grade":"e"},{"x":4.8,"y":72.5,"grade":"c"},{"x":0.9,"y":33.5,"grade":"f"},{"x":2.0,"y":44.3,"grade":"e"},{"x":3.0,"y":60.0,"grade":"d"},{"x":1.8,"y":32.6,"grade":"f"},{"x":3.8,"y":45.3,"grade":"e"},{"x":1.7,"y":31.4,"grade":"f"},{"x":3.9,"y":60.7,"grade":"d"},{"x":1.2,"y":39.4,"grade":"f"},{"x":1.5,"y":58.5,"grade":"d"},{"x":7.7,"y":92.4,"grade":"b"},{"x":6.1,"y":80.8,"grade":"c"},{"x":5.6,"y":58.4,"grade":"d"},{"x":3.5,"y":70.7,"grade":"c"},{"x":6.3,"y":70.7,"grade":"c"},{"x":5.9,"y":84.9,"grade":"c"},{"x":5.6,"y":71.8,"grade":"c"},{"x":5.4,"y":59.1,"grade":"d"},{"x":3.7,"y":63.9,"grade":"d"},{"x":7.8,"y":75.5,"grade":"c"},{"x":2.4,"y":51.5,"grade":"e"},{"x":3.8,"y":54.7,"grade":"e"},{"x":7.7,"y":80.6,"grade":"c"},{"x":6.9,"y":74.3,"grade":"c"},{"x":2.6,"y":46.0,"grade":"e"},{"x":3.6,"y":68.4,"grade":"d"},{"x":6.0,"y":84.8,"grade":"c"},{"x":2.6,"y":46.4,"grade":"e"},{"x":0.8,"y":40.9,"grade":"e"},{"x":4.1,"y":50.3,"grade":"e"},{"x":5.9,"y":85.8,"grade":"b"},{"x":4.4,"y":64.4,"grade":"d"},{"x":1.5,"y":29.0,"grade":"f"},{"x":6.3,"y":88.4,"grade":"b"},{"x":1.4,"y":30.1,"grade":"f"},{"x":6.5,"y":85.5,"grade":"b"},{"x":5.1,"y":60.1,"grade":"d"},{"x":0.9,"y":46.0,"grade":"e"},{"x":6.8,"y":68.3,"grade":"d"},{"x":0.6,"y":17.1,"grade":"f"},{"x":1.9,"y":46.8,"grade":"e"},{"x":1.0,"y":41.4,"grade":"e"},{"x":2.5,"y":46.1,"grade":"e"},{"x":5.6,"y":77.0,"grade":"c"},{"x":5.5,"y":75.1,"grade":"c"},{"x":2.5,"y":46.6,"grade":"e"},{"x":5.5,"y":60.4,"grade":"d"},{"x":1.6,"y":56.2,"grade":"d"},{"x":1.2,"y":38.7,"grade":"f"},{"x":2.5,"y":52.0,"grade":"e"},{"x":3.0,"y":66.2,"grade":"d"},{"x":0.7,"y":45.2,"grade":"e"},{"x":3.1,"y":52.1,"grade":"e"},{"x":1.0,"y":53.4,"grade":"e"},{"x":3.2,"y":63.6,"grade":"d"},{"x":3.5,"y":65.2,"grade":"d"},{"x":2.9,"y":64.5,"grade":"d"},{"x":6.8,"y":69.6,"grade":"d"},{"x":2.3,"y":51.2,"grade":"e"},{"x":3.5,"y":69.3,"grade":"d"},{"x":5.5,"y":79.1,"grade":"c"},{"x":6.0,"y":74.5,"grade":"c"},{"x":4.6,"y":71.8,"grade":"c"},{"x":3.0,"y":50.8,"grade":"e"},{"x":7.8,"y":94.4,"grade":"b"},{"x":4.8,"y":56.4,"grade":"d"},{"x":4.3,"y":57.8,"grade":"d"},{"x":2.4,"y":43.2,"grade":"e"},{"x":5.0,"y":76.8,"grade":"c"},{"x":4.4,"y":65.6,"grade":"d"},{"x":5.7,"y":69.7,"grade":"d"},{"x":4.9,"y":60.4,"grade":"d"},{"x":5.8,"y":78.6,"grade":"c"},{"x":4.2,"y":68.6,"grade":"d"},{"x":1.8,"y":31.4,"grade":"f"},{"x":5.7,"y":77.0,"grade":"c"},{"x":2.2,"y":39.8,"grade":"f"},{"x":6.4,"y":83.1,"grade":"c"},{"x":6.5,"y":81.1,"grade":"c"},{"x":6.9,"y":79.4,"grade":"c"},{"x":1.7,"y":27.7,"grade":"f"},{"x":7.5,"y":94.5,"grade":"b"},{"x":4.9,"y":85.0,"grade":"b"},{"x":5.8,"y":71.0,"grade":"c"},{"x":5.1,"y":83.8,"grade":"c"},{"x":5.6,"y":70.7,"grade":"c"},{"x":2.2,"y":40.8,"grade":"e"},{"x":5.8,"y":65.6,"grade":"d"},{"x":2.8,"y":47.2,"grade":"e"},{"x":2.4,"y":54.6,"grade":"e"},{"x":1.2,"y":43.2,"grade":"e"},{"x":0.8,"y":28.7,"grade":"f"},{"x":7.0,"y":76.8,"grade":"c"},{"x":3.6,"y":72.0,"grade":"c"},{"x":2.9,"y":56.1,"grade":"d"},{"x":5.8,"y":68.7,"grade":"d"},{"x":1.2,"y":36.5,"grade":"f"},{"x":7.0,"y":77.2,"grade":"c"},{"x":5.7,"y":72.5,"grade":"c"},{"x":4.4,"y":74.4,"grade":"c"},{"x":4.9,"y":55.8,"grade":"d"},{"x":2.6,"y":58.8,"grade":"d"},{"x":0.5,"y":26.3,"grade":"f"},{"x":3.4,"y":50.6,"grade":"e"},{"x":4.9,"y":69.5,"grade":"d"},{"x":3.9,"y":57.5,"grade":"d"},{"x":7.9,"y":94.9,"grade":"b"},{"x":5.1,"y":85.4,"grade":"b"},{"x":4.4,"y":65.1,"grade":"d"},{"x":1.6,"y":52.9,"grade":"e"},{"x":0.9,"y":21.1,"grade":"f"},{"x":6.0,"y":78.6,"grade":"c"},{"x":5.4,"y":83.3,"grade":"c"},{"x":6.6,"y":84.7,"grade":"c"},{"x":3.5,"y":67.7,"grade":"d"},{"x":3.2,"y":55.8,"grade":"d"},{"x":4.4,"y":59.5,"grade":"d"},{"x":1.1,"y":43.2,"grade":"e"},{"x":7.5,"y":77.1,"grade":"c"},{"x":1.7,"y":32.1,"grade":"f"},{"x":0.8,"y":36.0,"grade":"f"},{"x":2.6,"y":64.9,"grade":"d"},{"x":1.1,"y":32.8,"grade":"f"},{"x":6.6,"y":95.3,"grade":"a"},{"x":5.1,"y":64.5,"grade":"d"},{"x":7.9,"y":100.0,"grade":"a"},{"x":3.8,"y":70.3,"grade":"c"},{"x":5.0,"y":68.3,"grade":"d"},{"x":1.0,"y":29.7,"grade":"f"},{"x":5.4,"y":70.1,"grade":"c"},{"x":4.2,"y":66.6,"grade":"d"},{"x":7.3,"y":89.6,"grade":"b"},{"x":7.6,"y":100.0,"grade":"a"},{"x":5.8,"y":93.3,"grade":"b"},{"x":2.0,"y":61.4,"grade":"d"},{"x":3.3,"y":50.4,"grade":"e"},{"x":6.1,"y":79.0,"grade":"c"},{"x":7.3,"y":91.7,"grade":"b"},{"x":4.2,"y":73.0,"grade":"c"},{"x":1.5,"y":44.4,"grade":"e"},{"x":6.3,"y":74.8,"grade":"c"},{"x":6.2,"y":84.7,"grade":"c"},{"x":6.4,"y":65.7,"grade":"d"},{"x":4.6,"y":54.6,"grade":"e"},{"x":3.2,"y":60.1,"grade":"d"},{"x":6.0,"y":77.4,"grade":"c"},{"x":6.7,"y":81.8,"grade":"c"},{"x":2.8,"y":59.0,"grade":"d"},{"x":4.6,"y":69.2,"grade":"d"},{"x":5.9,"y":84.8,"grade":"c"},{"x":2.0,"y":53.3,"grade":"e"},{"x":3.6,"y":49.5,"grade":"e"},{"x":6.8,"y":80.6,"grade":"c"},{"x":6.9,"y":90.9,"grade":"b"},{"x":1.2,"y":27.2,"grade":"f"},{"x":4.0,"y":59.1,"grade":"d"},{"x":4.7,"y":65.6,"grade":"d"},{"x":5.0,"y":54.8,"grade":"e"},{"x":2.1,"y":47.9,"grade":"e"},{"x":4.3,"y":72.1,"grade":"c"},{"x":0.7,"y":38.9,"grade":"f"},{"x":7.4,"y":87.5,"grade":"b"},{"x":1.1,"y":25.7,"grade":"f"},{"x":1.8,"y":37.6,"grade":"f"},{"x":3.1,"y":63.5,"grade":"d"},{"x":3.1,"y":47.8,"grade":"e"},{"x":1.5,"y":46.7,"grade":"e"},{"x":3.6,"y":67.0,"grade":"d"},{"x":7.6,"y":87.7,"grade":"b"},{"x":2.9,"y":61.7,"grade":"d"},{"x":1.8,"y":46.3,"grade":"e"},{"x":5.5,"y":83.8,"grade":"c"},{"x":5.4,"y":67.5,"grade":"d"},{"x":3.5,"y":58.0,"grade":"d"},{"x":2.3,"y":37.0,"grade":"f"},{"x":3.2,"y":47.1,"grade":"e"},{"x":3.6,"y":71.5,"grade":"c"},{"x":4.5,"y":61.7,"grade":"d"},{"x":7.1,"y":86.5,"grade":"b"},{"x":0.9,"y":36.9,"grade":"f"},{"x":0.8,"y":46.1,"grade":"e"},{"x":5.6,"y":69.9,"grade":"d"},{"x":7.7,"y":98.1,"grade":"a"},{"x":4.0,"y":56.2,"grade":"d"},{"x":1.5,"y":37.7,"grade":"f"},{"x":5.7,"y":75.1,"grade":"c"},{"x":0.6,"y":36.7,"grade":"f"},{"x":7.1,"y":81.8,"grade":"c"},{"x":3.9,"y":61.3,"grade":"d"},{"x":3.1,"y":38.1,"grade":"f"},{"x":0.6,"y":48.6,"grade":"e"},{"x":5.1,"y":62.9,"grade":"d"},{"x":5.4,"y":57.9,"grade":"d"},{"x":7.0,"y":91.4,"grade":"b"},{"x":0.6,"y":28.6,"grade":"f"},{"x":1.8,"y":49.6,"grade":"e"},{"x":3.8,"y":66.2,"grade":"d"},{"x":3.5,"y":72.2,"grade":"c"},{"x":2.6,"y":63.0,"grade":"d"},{"x":2.4,"y":53.5,"grade":"e"},{"x":3.7,"y":53.8,"grade":"e"},{"x":6.9,"y":80.7,"grade":"c"},{"x":3.1,"y":56.0,"grade":"d"},{"x":4.1,"y":57.3,"grade":"d"},{"x":3.0,"y":44.9,"grade":"e"},{"x":6.8,"y":83.6,"grade":"c"},{"x":7.5,"y":96.1,"grade":"a"},{"x":1.4,"y":33.2,"grade":"f"},{"x":5.8,"y":84.5,"grade":"c"},{"x":6.6,"y":91.4,"grade":"b"},{"x":8.0,"y":90.4,"grade":"b"},{"x":1.6,"y":38.5,"grade":"f"},{"x":5.1,"y":81.5,"grade":"c"},{"x":7.0,"y":90.5,"grade":"b"},{"x":1.5,"y":51.6,"grade":"e"},{"x":5.7,"y":73.1,"grade":"c"},{"x":5.2,"y":77.8,"grade":"c"},{"x":7.2,"y":91.1,"grade":"b"},{"x":3.8,"y":59.8,"grade":"d"},{"x":7.3,"y":84.0,"grade":"c"},{"x":4.9,"y":62.3,"grade":"d"},{"x":1.6,"y":35.7,"grade":"f"},{"x":1.9,"y":50.9,"grade":"e"},{"x":6.2,"y":77.9,"grade":"c"},{"x":1.4,"y":45.8,"grade":"e"},{"x":7.2,"y":85.1,"grade":"b"},{"x":7.0,"y":98.9,"grade":"a"},{"x":7.3,"y":90.9,"grade":"b"},{"x":1.8,"y":56.5,"grade":"d"},{"x":5.1,"y":55.4,"grade":"d"},{"x":3.3,"y":56.0,"grade":"d"},{"x":5.0,"y":77.3,"grade":"c"},{"x":0.6,"y":28.0,"grade":"f"},{"x":4.9,"y":68.3,"grade":"d"},{"x":0.5,"y":41.7,"grade":"e"},{"x":6.9,"y":88.6,"grade":"b"},{"x":2.9,"y":43.0,"grade":"e"},{"x":8.0,"y":100.0,"grade":"a"},{"x":5.8,"y":91.3,"grade":"b"},{"x":5.0,"y":60.9,"grade":"d"},{"x":4.4,"y":62.5,"grade":"d"},{"x":7.5,"y":81.1,"grade":"c"},{"x":6.1,"y":66.8,"grade":"d"},{"x":5.3,"y":61.6,"grade":"d"},{"x":3.7,"y":54.8,"grade":"e"},{"x":6.7,"y":80.4,"grade":"c"},{"x":3.2,"y":44.2,"grade":"e"},{"x":7.4,"y":87.0,"grade":"b"},{"x":1.4,"y":42.2,"grade":"e"},{"x":0.5,"y":43.6,"grade":"e"},{"x":7.7,"y":79.5,"grade":"c"},{"x":5.5,"y":86.4,"grade":"b"},{"x":5.9,"y":66.1,"grade":"d"},{"x":4.5,"y":74.6,"grade":"c"},{"x":2.1,"y":46.9,"grade":"e"},{"x":6.4,"y":98.9,"grade":"a"},{"x":7.0,"y":91.8,"grade":"b"},{"x":7.8,"y":89.0,"grade":"b"},{"x":7.5,"y":84.5,"grade":"c"},{"x":0.9,"y":32.6,"grade":"f"},{"x":4.5,"y":56.7,"grade":"d"},{"x":6.7,"y":67.2,"grade":"d"},{"x":6.0,"y":75.2,"grade":"c"},{"x":5.9,"y":83.2,"grade":"c"},{"x":2.3,"y":46.6,"grade":"e"},{"x":6.3,"y":86.1,"grade":"b"},{"x":2.6,"y":40.2,"grade":"e"},{"x":1.2,"y":30.9,"grade":"f"},{"x":5.5,"y":58.0,"grade":"d"},{"x":5.2,"y":77.4,"grade":"c"},{"x":1.1,"y":34.7,"grade":"f"},{"x":7.9,"y":85.4,"grade":"b"},{"x":4.2,"y":51.9,"grade":"e"},{"x":3.2,"y":69.6,"grade":"d"},{"x":0.8,"y":39.8,"grade":"f"},{"x":5.6,"y":87.5,"grade":"b"},{"x":1.7,"y":43.2,"grade":"e"},{"x":5.8,"y":70.3,"grade":"c"},{"x":7.3,"y":95.8,"grade":"a"},{"x":6.1,"y":77.9,"grade":"c"},{"x":7.9,"y":92.7,"grade":"b"},{"x":3.5,"y":63.3,"grade":"d"},{"x":4.5,"y":76.9,"grade":"c"},{"x":2.4,"y":34.0,"grade":"f"},{"x":6.6,"y":84.5,"grade":"c"},{"x":5.0,"y":70.9,"grade":"c"},{"x":0.8,"y":22.6,"grade":"f"},{"x":2.0,"y":40.6,"grade":"e"},{"x":2.1,"y":52.4,"grade":"e"},{"x":2.8,"y":40.8,"grade":"e"},{"x":4.3,"y":65.9,"grade":"d"},{"x":6.5,"y":75.9,"grade":"c"},{"x":3.7,"y":49.9,"grade":"e"},{"x":2.5,"y":48.6,"grade":"e"},{"x":4.3,"y":67.5,"grade":"d"},{"x":4.6,"y":67.2,"grade":"d"},{"x":2.8,"y":50.9,"grade":"e"},{"x":5.2,"y":82.8,"grade":"c"},{"x":7.9,"y":100.0,"grade":"a"},{"x":1.2,"y":38.0,"grade":"f"},{"x":2.3,"y":63.4,"grade":"d"},{"x":5.1,"y":69.4,"grade":"d"},{"x":4.9,"y":65.8,"grade":"d"},{"x":1.7,"y":36.7,"grade":"f"},{"x":2.5,"y":52.5,"grade":"e"},{"x":2.1,"y":55.1,"grade":"d"},{"x":5.6,"y":92.0,"grade":"b"},{"x":7.1,"y":86.2,"grade":"b"},{"x":2.8,"y":51.9,"grade":"e"},{"x":7.1,"y":79.7,"grade":"c"},{"x":5.3,"y":76.4,"grade":"c"},{"x":6.7,"y":83.2,"grade":"c"},{"x":4.1,"y":65.0,"grade":"d"},{"x":2.1,"y":59.6,"grade":"d"},{"x":1.6,"y":49.0,"grade":"e"},{"x":6.9,"y":76.5,"grade":"c"},{"x":6.3,"y":96.9,"grade":"a"},{"x":3.9,"y":69.6,"grade":"d"},{"x":6.0,"y":83.0,"grade":"c"},{"x":7.7,"y":91.4,"grade":"b"},{"x":6.1,"y":89.3,"grade":"b"},{"x":4.1,"y":60.4,"grade":"d"},{"x":5.3,"y":70.5,"grade":"c"},{"x":5.2,"y":70.7,"grade":"c"},{"x":3.3,"y":50.8,"grade":"e"},{"x":1.7,"y":39.6,"grade":"f"},{"x":7.4,"y":84.0,"grade":"c"},{"x":1.1,"y":21.7,"grade":"f"},{"x":5.9,"y":79.8,"grade":"c"}]
+};
+
+const TOTAL = 15000;
+const tip = document.getElementById('tip');
+function showTip(e, html){ tip.innerHTML=html; tip.classList.add('show'); posTip(e); }
+function posTip(e){ tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY-10)+'px'; }
+function hideTip(){ tip.classList.remove('show'); }
+document.addEventListener('mousemove', e=>{ if(tip.classList.contains('show')) posTip(e); });
+
+// ── DONUT ──
+function buildDonut(){
+  const canvas = document.getElementById('donut');
+  const ctx = canvas.getContext('2d');
+  const cx=65, cy=65, R=58, r=36;
+  const grades = ['a','b','c','d','e','f'];
+  const total = Object.values(D.grade_dist).reduce((a,b)=>a+b,0);
+  let startAngle = -Math.PI/2;
+  const segments = [];
+  grades.forEach(g=>{
+    const slice = (D.grade_dist[g]/total)*2*Math.PI;
+    segments.push({grade:g, start:startAngle, end:startAngle+slice});
+    startAngle += slice;
+  });
+
+  function draw(hover=-1){
+    ctx.clearRect(0,0,130,130);
+    segments.forEach((s,i)=>{
+      ctx.beginPath();
+      const offset = i===hover ? 4 : 0;
+      const mid = (s.start+s.end)/2;
+      const ox = Math.cos(mid)*offset, oy = Math.sin(mid)*offset;
+      ctx.arc(cx+ox, cy+oy, R, s.start, s.end);
+      ctx.arc(cx+ox, cy+oy, r, s.end, s.start, true);
+      ctx.closePath();
+      ctx.fillStyle = D.grade_colors[s.grade];
+      ctx.fill();
+    });
+    // center
+    ctx.beginPath(); ctx.arc(cx,cy,r-2,0,Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.fillStyle='#1a2035'; ctx.font='bold 14px Plus Jakarta Sans';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('15K', cx, cy-6);
+    ctx.font='500 9px Plus Jakarta Sans';
+    ctx.fillStyle='#7b8499';
+    ctx.fillText('Students', cx, cy+8);
+  }
+  draw();
+
+  canvas.addEventListener('mousemove', e=>{
+    const rect=canvas.getBoundingClientRect();
+    const mx=e.clientX-rect.left-cx, my=e.clientY-rect.top-cy;
+    const dist=Math.sqrt(mx*mx+my*my);
+    if(dist<r||dist>R){ draw(); hideTip(); return; }
+    let angle=Math.atan2(my,mx);
+    if(angle<-Math.PI/2) angle+=2*Math.PI;
+    const i=segments.findIndex(s=>angle>=s.start&&angle<s.end);
+    if(i>=0){ draw(i); const s=segments[i]; const pct=(D.grade_dist[s.grade]/TOTAL*100).toFixed(1);
+      showTip(e,`<strong>Grade ${s.grade.toUpperCase()}</strong>${D.grade_dist[s.grade].toLocaleString()} students · ${pct}%`); }
+  });
+  canvas.addEventListener('mouseleave',()=>{ draw(); hideTip(); });
+
+  // Legend
+  const leg = document.getElementById('donutLegend');
+  grades.forEach(g=>{
+    const pct=(D.grade_dist[g]/TOTAL*100).toFixed(1);
+    const div=document.createElement('div'); div.className='dleg';
+    div.innerHTML=`<div class="dleg-swatch" style="background:${D.grade_colors[g]}"></div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between">
+          <span class="dleg-label">Grade ${g.toUpperCase()}</span>
+          <span class="dleg-val">${D.grade_dist[g].toLocaleString()}</span>
+        </div>
+        <div class="dleg-bar" style="width:100%;background:#f0f2f5">
+          <div class="dleg-bar" style="width:${pct}%;background:${D.grade_colors[g]};margin:0"></div>
+        </div>
+      </div>`;
+    div.addEventListener('mousemove', e=>showTip(e,`<strong>Grade ${g.toUpperCase()}</strong>${D.grade_dist[g].toLocaleString()} students · ${pct}%`));
+    div.addEventListener('mouseleave', hideTip);
+    leg.appendChild(div);
+  });
+}
+
+// ── HISTOGRAM ──
+function buildHistogram(){
+  const container = document.getElementById('histBars');
+  const vals = Object.values(D.score_hist);
+  const max = Math.max(...vals);
+  const colors = ['#be123c','#ef4444','#f97316','#f59e0b','#10b981','#10b981','#2563eb','#2563eb','#7c3aed','#7c3aed'];
+  Object.entries(D.score_hist).forEach(([range, count], i)=>{
+    const pct = (count/max*100).toFixed(0);
+    const wrap = document.createElement('div'); wrap.className='hist-bar-wrap';
+    wrap.innerHTML=`<div class="hist-bar" style="height:${pct}%;background:${colors[i]};opacity:.85" data-v="${count}" data-r="${range}"></div>
+      <div class="hist-xlabel">${range}s</div>`;
+    const bar=wrap.querySelector('.hist-bar');
+    bar.style.height='0'; setTimeout(()=>{ bar.style.transition='height 1s ease'; bar.style.height=pct+'%'; }, 80+i*50);
+    bar.addEventListener('mousemove',e=>showTip(e,`<strong>Score ${range}–${+range+9}</strong>${count.toLocaleString()} students`));
+    bar.addEventListener('mouseleave',hideTip);
+    container.appendChild(wrap);
+  });
+}
+
+// ── GENDER ──
+function buildGender(){
+  const container=document.getElementById('genderGrid');
+  const genders=[{k:'male',label:'Male',color:'#2563eb'},{k:'female',label:'Female',color:'#e11d48'},{k:'other',label:'Other',color:'#0d9488'}];
+  const total=Object.values(D.gender).reduce((a,b)=>a+b.n,0);
+  genders.forEach(g=>{
+    const d=D.gender[g.k]; const pct=(d.n/total*100).toFixed(1);
+    const item=document.createElement('div'); item.className='gender-item';
+    item.innerHTML=`
+      <div class="gender-ring"><canvas id="gr_${g.k}" width="70" height="70"></canvas>
+        <div class="gender-center"><div class="gender-pct" style="color:${g.color}">${pct}%</div></div>
+      </div>
+      <div class="gender-name" style="font-weight:600;color:#1a2035">${g.label}</div>
+      <div class="gender-score-lbl">Avg Score</div>
+      <div class="gender-score-val">${d.avg}</div>`;
+    container.appendChild(item);
+    // draw ring
+    setTimeout(()=>{
+      const c=document.getElementById(`gr_${g.k}`).getContext('2d');
+      const r=30, cx=35, cy=35;
+      c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.strokeStyle='#f0f2f5'; c.lineWidth=7; c.stroke();
+      c.beginPath(); c.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+(d.n/total)*2*Math.PI);
+      c.strokeStyle=g.color; c.lineWidth=7; c.lineCap='round'; c.stroke();
+    },50);
+    item.addEventListener('mousemove',e=>showTip(e,`<strong>${g.label}</strong>${d.n.toLocaleString()} students · Avg: ${d.avg}`));
+    item.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ── ATTENDANCE ──
+function buildAttendance(){
+  const container=document.getElementById('attGauge');
+  const entries=Object.entries(D.att_avg);
+  const max=Math.max(...entries.map(e=>e[1]));
+  const colors=['#ef4444','#f97316','#f59e0b','#10b981','#059669'];
+  entries.forEach(([label,val],i)=>{
+    const pct=(val/max*100).toFixed(0);
+    const row=document.createElement('div'); row.className='gauge-item';
+    row.innerHTML=`<div class="gauge-label">${label}</div>
+      <div class="gauge-track"><div class="gauge-fill" style="width:0%;background:${colors[i]}" id="gf${i}"></div></div>
+      <div class="gauge-val">${val}</div>`;
+    container.appendChild(row);
+    setTimeout(()=>{ document.getElementById('gf'+i).style.width=pct+'%'; }, 100+i*80);
+    row.addEventListener('mousemove',e=>showTip(e,`<strong>Attendance ${label}</strong>Avg Score: ${val}`));
+    row.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ── STUDY HOURS ──
+function buildStudyBars(){
+  const container=document.getElementById('studyBars');
+  const max=Math.max(...Object.values(D.study_avg));
+  const colors=['#ef4444','#f97316','#2563eb','#059669'];
+  Object.entries(D.study_avg).forEach(([label,val],i)=>{
+    const pct=(val/max*100).toFixed(0);
+    const row=document.createElement('div'); row.className='hbar-item';
+    row.innerHTML=`<div class="hbar-label">${label} · ${D.study_count[label].toLocaleString()} students</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:0%;background:${colors[i]}" id="sf${i}">${val}</div></div>
+      <div class="hbar-val">${val}</div>`;
+    container.appendChild(row);
+    setTimeout(()=>{ document.getElementById('sf'+i).style.width=pct+'%'; }, 120+i*80);
+    row.addEventListener('mousemove',e=>showTip(e,`<strong>${label} Study</strong>Avg Score: ${val} · ${D.study_count[label].toLocaleString()} students`));
+    row.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ── SUBJECT GROUPED BAR ──
+function buildSubjectBar(){
+  const canvas=document.getElementById('subjectBar');
+  const W=canvas.offsetWidth; const H=170;
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+
+  const subjects=['math','science','english'];
+  const subjectLabels=['Math','Science','English'];
+  const genders=['male','female','other'];
+  const gColors=['#2563eb','#e11d48','#0d9488'];
+  const gLabels=['Male','Female','Other'];
+  const pad={top:10,right:10,bottom:35,left:30};
+  const chartW=W-pad.left-pad.right;
+  const chartH=H-pad.top-pad.bottom;
+  const groupW=chartW/3;
+  const barW=groupW/5;
+  const maxVal=66;
+
+  // grid lines
+  [0,20,40,60].forEach(v=>{
+    const y=pad.top+chartH*(1-v/maxVal);
+    ctx.strokeStyle='#e2e6ed'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(W-pad.right,y); ctx.stroke();
+    ctx.fillStyle='#7b8499'; ctx.font=`10px Plus Jakarta Sans`; ctx.textAlign='right';
+    ctx.fillText(v, pad.left-4, y+3);
+  });
+
+  subjects.forEach((subj,si)=>{
+    const gx=pad.left+si*groupW+groupW/2;
+    genders.forEach((g,gi)=>{
+      const val=D.subj_gender[g][subj];
+      const bh=(val/maxVal)*chartH;
+      const x=gx+(gi-1)*barW*1.2-barW/2;
+      const y=pad.top+chartH-bh;
+      ctx.fillStyle=gColors[gi];
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x,y,barW,bh,3) : ctx.rect(x,y,barW,bh);
+      ctx.fill();
+    });
+    ctx.fillStyle='#1a2035'; ctx.font=`11px Plus Jakarta Sans`; ctx.textAlign='center';
+    ctx.fillText(subjectLabels[si], gx, H-8);
+  });
+
+  // legend
+  const legDiv=document.createElement('div');
+  legDiv.style.cssText='display:flex;gap:12px;margin-top:8px';
+  genders.forEach((g,i)=>{
+    const span=document.createElement('span');
+    span.style.cssText=`display:flex;align-items:center;gap:5px;font-size:11px;color:#7b8499`;
+    span.innerHTML=`<span style="width:10px;height:10px;border-radius:2px;background:${gColors[i]};display:inline-block"></span>${gLabels[i]}`;
+    legDiv.appendChild(span);
+  });
+  canvas.parentElement.appendChild(legDiv);
+}
+
+// ── BUBBLES ──
+function buildBubbles(){
+  const container=document.getElementById('bubbleChart');
+  const methods=Object.keys(D.method_avg);
+  const minV=Math.min(...Object.values(D.method_avg));
+  const maxV=Math.max(...Object.values(D.method_avg));
+  const colors=['#2563eb','#0d9488','#d97706','#7c3aed','#e11d48','#059669'];
+  methods.forEach((m,i)=>{
+    const val=D.method_avg[m];
+    const sz=32+((val-minV)/(maxV-minV))*28;
+    const col=document.createElement('div'); col.className='bubble-col';
+    col.innerHTML=`<div class="bubble-score">${val}</div>
+      <div class="bubble" style="width:${sz}px;height:${sz}px;background:${colors[i]};font-size:${sz>45?10:9}px">${val}</div>
+      <div class="bubble-label">${m}</div>`;
+    const bub=col.querySelector('.bubble');
+    bub.addEventListener('mousemove',e=>showTip(e,`<strong>${m}</strong>Avg Score: ${val} · ${D.method_count[m].toLocaleString()} students`));
+    bub.addEventListener('mouseleave',hideTip);
+    container.appendChild(col);
+  });
+}
+
+// ── STACKED SCHOOL ──
+function buildStacked(){
+  const grades=['a','b','c','d','e','f'];
+  const schools=['public','private'];
+  const legDiv=document.getElementById('stackedLegend');
+  grades.forEach(g=>{
+    const span=document.createElement('div'); span.className='sleg';
+    span.innerHTML=`<div class="sleg-dot" style="background:${D.grade_colors[g]}"></div>Grade ${g.toUpperCase()}`;
+    legDiv.appendChild(span);
+  });
+  const container=document.getElementById('stackedBars');
+  schools.forEach(s=>{
+    const total=Object.values(D.school_grade[s]).reduce((a,b)=>a+b,0);
+    const row=document.createElement('div'); row.className='sbar-row';
+    const track=document.createElement('div'); track.className='sbar-track';
+    grades.forEach(g=>{
+      const pct=(D.school_grade[s][g]||0)/total*100;
+      const seg=document.createElement('div'); seg.className='sbar-seg';
+      seg.style.cssText=`width:0%;background:${D.grade_colors[g]};transition:width 1.2s ease`;
+      seg.title=`Grade ${g.toUpperCase()}: ${D.school_grade[s][g]||0}`;
+      if(pct>6) seg.textContent=g.toUpperCase();
+      seg.addEventListener('mousemove',e=>showTip(e,`<strong>${s.charAt(0).toUpperCase()+s.slice(1)} · Grade ${g.toUpperCase()}</strong>${D.school_grade[s][g]||0} students (${pct.toFixed(1)}%)`));
+      seg.addEventListener('mouseleave',hideTip);
+      track.appendChild(seg);
+      setTimeout(()=>{ seg.style.width=pct+'%'; }, 200);
+    });
+    row.innerHTML=`<div class="sbar-label">${s.charAt(0).toUpperCase()+s.slice(1)}</div>`;
+    row.appendChild(track);
+    container.appendChild(row);
+  });
+}
+
+// ── PARENT EDU ──
+function buildEdu(){
+  const container=document.getElementById('eduChart');
+  const entries=Object.entries(D.edu_avg).sort((a,b)=>b[1]-a[1]);
+  const max=Math.max(...entries.map(e=>e[1]));
+  const colors=['#7c3aed','#2563eb','#0d9488','#059669','#d97706','#e11d48'];
+  entries.forEach(([label,val],i)=>{
+    const pct=(val/max*100).toFixed(0);
+    const count=D.edu_count[label];
+    const row=document.createElement('div'); row.className='edu-row';
+    row.innerHTML=`<div class="edu-label">${label}</div>
+      <div class="edu-track"><div class="edu-fill" style="width:0%;background:${colors[i]}" id="ef${i}"></div></div>
+      <div class="edu-val">${val}</div>`;
+    container.appendChild(row);
+    setTimeout(()=>{ document.getElementById('ef'+i).style.width=pct+'%'; }, 120+i*70);
+    row.addEventListener('mousemove',e=>showTip(e,`<strong>${label}</strong>Avg Score: ${val} · ${count.toLocaleString()} students`));
+    row.addEventListener('mouseleave',hideTip);
+  });
+}
+
+// ── SCATTER ──
+function buildScatter(){
+  const canvas=document.getElementById('scatter');
+  const W=canvas.offsetWidth; const H=260;
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  const pad={top:15,right:20,bottom:40,left:48};
+  const cW=W-pad.left-pad.right, cH=H-pad.top-pad.bottom;
+
+  // grid
+  for(let v=0;v<=100;v+=20){
+    const y=pad.top+cH*(1-v/100);
+    ctx.strokeStyle='#e2e6ed'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(W-pad.right,y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#7b8499'; ctx.font=`10px Plus Jakarta Sans`; ctx.textAlign='right';
+    ctx.fillText(v, pad.left-6, y+3);
+  }
+  for(let h=0;h<=8;h+=2){
+    const x=pad.left+(h/8)*cW;
+    ctx.strokeStyle='#e2e6ed'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(x,pad.top); ctx.lineTo(x,H-pad.bottom); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#7b8499'; ctx.font=`10px Plus Jakarta Sans`; ctx.textAlign='center';
+    ctx.fillText(h, x, H-pad.bottom+14);
+  }
+
+  // axis labels
+  ctx.fillStyle='#7b8499'; ctx.font=`11px Plus Jakarta Sans`; ctx.textAlign='center';
+  ctx.fillText('Study Hours / Day', W/2, H-4);
+  ctx.save(); ctx.translate(14,H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Overall Score', 0, 0); ctx.restore();
+
+  // trend line
+  const pts=D.scatter.map(d=>({ x:pad.left+(d.x/8)*cW, y:pad.top+(1-d.y/100)*cH, d }));
+  const xm=pts.reduce((a,p)=>a+p.x,0)/pts.length, ym=pts.reduce((a,p)=>a+p.y,0)/pts.length;
+  const num=pts.reduce((a,p)=>a+(p.x-xm)*(p.y-ym),0);
+  const den=pts.reduce((a,p)=>a+(p.x-xm)**2,0);
+  const m=num/den, b=ym-m*xm;
+  ctx.strokeStyle='#2563eb'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]); ctx.globalAlpha=.5;
+  ctx.beginPath(); ctx.moveTo(pad.left, m*pad.left+b); ctx.lineTo(W-pad.right, m*(W-pad.right)+b);
+  ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+
+  // dots
+  pts.forEach(({x,y,d})=>{
+    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
+    ctx.fillStyle=D.grade_colors[d.grade]+'bb'; ctx.fill();
+    ctx.strokeStyle=D.grade_colors[d.grade]; ctx.lineWidth=.8; ctx.stroke();
+  });
+
+  // hover
+  canvas.addEventListener('mousemove', e=>{
+    const rect=canvas.getBoundingClientRect();
+    const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+    const found=pts.find(p=>Math.abs(mx-p.x)<7&&Math.abs(my-p.y)<7);
+    if(found){ showTip(e,`<strong>Grade ${found.d.grade.toUpperCase()}</strong>Study: ${found.d.x}h · Score: ${found.d.y}`); canvas.style.cursor='pointer'; }
+    else{ hideTip(); canvas.style.cursor='default'; }
+  });
+  canvas.addEventListener('mouseleave', hideTip);
+
+  // legend
+  const legDiv=document.getElementById('scatterLegend');
+  ['a','b','c','d','e','f'].forEach(g=>{
+    const sp=document.createElement('span');
+    sp.style.cssText=`display:flex;align-items:center;gap:4px;font-size:11px;color:#7b8499;font-weight:500`;
+    sp.innerHTML=`<span style="width:10px;height:10px;border-radius:50%;background:${D.grade_colors[g]};display:inline-block"></span>Grade ${g.toUpperCase()}`;
+    legDiv.appendChild(sp);
+  });
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  buildDonut();
+  buildHistogram();
+  buildGender();
+  buildAttendance();
+  buildStudyBars();
+  buildSubjectBar();
+  buildBubbles();
+  buildStacked();
+  buildEdu();
+  buildScatter();
+  window.addEventListener('resize', buildScatter);
+});
+</script>
+</body>
+</html>
